@@ -3,14 +3,13 @@ import javax.swing.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 
-public class GUI implements IMGDraw {
+public class GUI implements IMGDraw, Runnable {
 
-    boolean run = false;
-    int hrs = 0;
-    int min = 0;
-    int sec = 0;
-    int set = 0;
+    boolean stop = false;
+    int i, j, k, l;
 
     BufferedImage img;
     {
@@ -23,29 +22,44 @@ public class GUI implements IMGDraw {
 
     JFrame frame = new JFrame();
     JLabel l1 = new JLabel(new ImageIcon(img));
-    JLabel time = new JLabel();
+    JLabel displayTime = new JLabel();
     JButton start = new JButton("Fungus");
 
     void init() {
         frame.setSize(300, 300);
         frame.setLayout(null);
+        frame.setDefaultCloseOperation(3);
         frame.setResizable(false);
     }
 
     void renderComponents() {
         l1.setBounds(0, 0, 300, 300);
-        time.setBounds(50, 10, 200, 50);
+        displayTime.setBounds(50, 10, 200, 50);
         start.setBounds(50, 100, 200, 50);
-        start.addActionListener(e -> {run = !run;
-            try {
-                runtime();
-            } catch (InterruptedException ex) {
-                throw new RuntimeException(ex);
+        start.addActionListener(e ->
+        {
+            Thread t = new Thread((Runnable) this);
+
+            if (!stop && !start.getText().equals("Stop")) {
+                t.start();
+                start.setText("Stop");
+            } else if (start.getText().equals("Stop")) {
+                stop = true;
+                start.setText("Restart");
+            } else if (start.getText().equals("Restart")) {
+                i = 0;
+                j = 0;
+                k = 0;
+                l = 0;
+                stop = false;
+                start.setText("Stop");
             }
-        });
+            System.out.println(stop + " " + start.getText());
+        }
+        );
 
 
-        frame.add(time);
+        frame.add(displayTime);
         frame.add(start);
         frame.add(l1);
 
@@ -56,30 +70,27 @@ public class GUI implements IMGDraw {
         frame.repaint();
     }
 
-    void run() throws InterruptedException {
-        Thread.sleep(80);
-        set++;
-
-        if (set == 100) {
-            set = 0;
-            sec++;
-        } else if (sec == 60) {
-            sec = 0;
-            min++;
-        } else if (min == 60) {
-            min = 0;
-            hrs++;
+    public void run() {
+        while (!stop) {
+            for (i = 0; ; i++) {
+                for (j = 0; j < 60; j++) {
+                    for (k = 0; k < 60; k++) {
+                        for (l = 0; l < 100; l++) {
+                            if (stop) {
+                                break;
+                            }
+                            NumberFormat nf = new DecimalFormat("00");
+                            displayTime.setText(nf.format(i) + ":" + nf.format(j) + ":" + nf.format(k) + ":" + nf.format(l));
+                            try {
+                                Thread.sleep(10);
+                            } catch (Exception e) {
+                            }
+                        }
+                    }
+                }
+            }
         }
-
+        Thread.interrupted();
     }
-
-    void runtime() throws InterruptedException {
-        while (run) {
-            run();
-            System.out.println(hrs + " : " + min + " : " + sec + " : " + set);
-        }
-    }
-
-
 
 }
